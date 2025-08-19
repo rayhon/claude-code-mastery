@@ -1,0 +1,58 @@
+{
+  "mcpServers": {
+    "cf-docs": {
+      "type": "sse",
+      "url": "https://docs.mcp.cloudflare.com/sse"
+    },
+    "sequentialthinking": {
+      "type": "http",
+      "url": "https://remote.mcpservers.org/sequentialthinking/mcp"
+    },
+    "fetch": {
+      "type": "http",
+      "url": "https://remote.mcpservers.org/fetch/mcp"
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/Users/raymond/projects/opensources/serena"
+      ],
+      "env": {}
+    },
+    "shadcn-component": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": [
+        "-y",
+        "@jpisnice/shadcn-ui-mcp-server",
+        "--github-api-key",
+        ""
+      ],
+      "env": {}
+    },
+    "shadcn-themes": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "shadcn@canary",
+        "registry:mcp"
+      ],
+      "env": {
+        "REGISTRY_URL": "https://alpine-registry.vercel.app//r/registry.json"
+      }
+    },
+    "atlassian": {
+      "type": "sse",
+      "url": "https://mcp.atlassian.com/v1/sse"
+    }
+  }
+}
