@@ -33,8 +33,7 @@
       "args": [
         "-y",
         "@jpisnice/shadcn-ui-mcp-server",
-        "--github-api-key",
-        ""
+        "--github-api-key"
       ],
       "env": {}
     },
