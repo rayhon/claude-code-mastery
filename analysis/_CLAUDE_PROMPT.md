@@ -1,4 +1,11 @@
-# System prompt tricks
+# Claude Code's System prompt tricks
+
+## 0. **The prompts use sophisticated techniques**
+
+* **XML tags** for hierarchical information structure
+* **System reminders** injected contextually during conversations
+* **Explicit tool usage examples** with good/bad patterns
+* **Task management** as a core function with constant reinforcement
 
 ## 1. **Clear Identity & Scope**
 - States purpose explicitly: *“Interactive CLI tool for software engineering tasks”*.
