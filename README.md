@@ -1,6 +1,7 @@
 # 🚀 Full Guide to Using Claude Code
 ## Video
 https://www.youtube.com/watch?v=amEUIuBKwvg
+https://www.youtube.com/watch?v=4PlVnrliN3Q
 
 
 Everything you need to know to crush building anything with Claude Code! This guide takes you from installation through advanced context engineering, subagents, hooks, and parallel agent workflows.
@@ -16,14 +17,10 @@ Everything you need to know to crush building anything with Claude Code! This gu
 
 **macOS/Linux:**
 ```bash
+# install claude code
 npm install -g @anthropic-ai/claude-code
-```
 
-**Windows (WSL recommended):**
-See detailed instructions in [install_claude_code_windows.md](./install_claude_code_windows.md)
-
-**Verify installation:**
-```bash
+# verify
 claude --version
 ```
 
