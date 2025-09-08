@@ -45,4 +45,6 @@
 cd [project]
 curl -sSL https://raw.githubusercontent.com/automazeio/ccpm/refs/heads/main/install/ccpm.sh | bash
 ```
+### convex tutorial
+* https://www.youtube.com/watch?v=O_HXVAMPEbc
 

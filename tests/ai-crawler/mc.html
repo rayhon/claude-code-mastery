@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crawler Management UI</title>
+  <style>
+    /*
+      Shadcn/OpenAI-inspired design — pure CSS, no external deps.
+      - Neutral palette, subtle borders, soft shadows
+      - Rounded-2xl cards, tidy spacing, focus rings
+      - Dark mode via prefers-color-scheme
+    */
+
+    :root {
+      --background: #ffffff;
+      --foreground: #0b1020;
+      --muted: #6b7280;          /* text muted */
+      --card: #fbfbfc;           /* card bg */
+      --border: #e5e7eb;         /* subtle border */
+      --accent: #111827;         /* headings */
+      --ring: #4f46e5;           /* focus ring */
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --link: #2563eb;
+      --badge: #111827;
+      --badge-text: #f9fafb;
+      --chip: #eef2ff;
+      --chip-text: #3730a3;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0b0d12;
+        --foreground: #f3f4f6;
+        --muted: #9ca3af;
+        --card: #0f1218;
+        --border: #1f2430;
+        --accent: #e5e7eb;
+        --ring: #6366f1;
+        --badge: #1f2430;
+        --badge-text: #e5e7eb;
+        --chip: #1b1f2a;
+        --chip-text: #c7d2fe;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto 64px auto;
+      padding: 0 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: var(--accent);
+    }
+    .subtle { color: var(--muted); font-size: 13px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.06);
+    }
+    .section {
+      padding: 18px 18px 16px 18px;
+    }
+    .section + .section { border-top: 1px dashed var(--border); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .field-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .input, .textarea {
+      width: 100%;
+      background: var(--background);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: box-shadow 120ms ease, border-color 120ms ease;
+    }
+    .input:focus, .textarea:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 18%, transparent);
+    }
+    .textarea { min-height: 160px; resize: vertical; }
+
+    .row { display: flex; align-items: center; gap: 10px; }
+    .row.wrap { flex-wrap: wrap; }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--background);
+      color: var(--foreground);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.05s ease, background 120ms ease, border-color 120ms ease;
+    }
+    .btn:hover { border-color: color-mix(in oklab, var(--ring) 30%, var(--border)); }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary {
+      background: var(--ring);
+      color: white;
+      border-color: var(--ring);
+    }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--chip);
+      color: var(--chip-text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px; font-weight: 600;
+    }
+    .pill .x {
+      width: 18px; height: 18px; line-height: 18px; text-align: center;
+      border-radius: 50%; border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 11px; color: var(--muted);
+      background: var(--background);
+    }
+
+    .thin { height: 40px; padding: 8px 12px; }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .toolbar .left, .toolbar .right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .switch {
+      display: inline-flex; align-items: center; gap: 10px; font-size: 14px;
+    }
+    .switch input { display: none; }
+    .switch .track {
+      width: 44px; height: 24px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--background); position: relative;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    .switch .thumb {
+      position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--foreground); transition: transform 140ms ease;
+    }
+    .switch input:checked + .track { background: color-mix(in oklab, var(--ring) 14%, var(--background)); border-color: var(--ring); }
+    .switch input:checked + .track .thumb { transform: translateX(20px); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    thead th { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .status {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600;
+    }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--border); }
+    .status-dot.yellow { background: var(--warning); }
+    .status-dot.green { background: var(--success); }
+    .status-dot.red { background: var(--danger); }
+
+    .badge-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border-radius: 999px; font-weight: 600; font-size: 13px;
+      background: var(--badge); color: var(--badge-text); text-decoration: none;
+      border: 1px solid var(--border);
+    }
+    .badge-link:focus { outline: none; box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 20%, transparent); }
+    .badge-link[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+
+    .helper {
+      font-size: 12px; color: var(--muted);
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed; inset: 0; display: none; place-items: center;
+      background: color-mix(in oklab, #000 60%, transparent);
+      padding: 30px; z-index: 50;
+    }
+    .modal[open] { display: grid; }
+    .modal-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      max-width: 900px; width: min(900px, 100%); max-height: 80vh; overflow: auto; padding: 0;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .modal-body { padding: 16px; }
+    pre {
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 13px; line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="title">Crawler Manager</div>
+        <div class="subtle">Define fields & URLs up top. Track job progress below. Clean, OpenAI-like UI; shadcn‑inspired components.</div>
+      </div>
+      <div class="row">
+        <label class="switch" title="Mock results to demo UI without network/cors issues">
+          <input id="mock-toggle" type="checkbox" checked>
+          <span class="track"><span class="thumb"></span></span>
+          <span class="subtle">Mock crawl</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Top Controls -->
+    <div class="card" aria-label="Controls">
+      <div class="section">
+        <div class="field-label">Fields to extract</div>
+        <div class="row wrap" style="margin-bottom: 10px;" id="field-list"></div>
+        <div class="row">
+          <input id="field-input" class="input" placeholder="Add a field (e.g., title) and press Enter" />
+          <button id="add-field-btn" class="btn thin" aria-label="Add field">Add</button>
+        </div>
+        <div class="helper" style="margin-top:6px">Tip: keep field names snake_case for consistent JSON keys.</div>
+      </div>
+      <div class="section">
+        <div class="grid">
+          <div>
+            <div class="field-label">URLs (one per line)</div>
+            <textarea id="url-input" class="textarea" placeholder="https://example.com/product/1\nhttps://example.com/product/2"></textarea>
+            <div class="helper" style="margin-top:6px">Each URL will run as its own job.</div>
+          </div>
+          <div>
+            <div class="field-label">Actions</div>
+            <div class="row" style="margin-bottom: 10px;">
+              <button id="start-btn" class="btn primary">Start Crawl</button>
+              <button id="clear-btn" class="btn">Clear</button>
+              <button id="export-btn" class="btn">Export All Results</button>
+            </div>
+            <div class="helper">Integrate with your backend: replace <code>runJob()</code> to call your Orchestrator API and resolve with <code>{ statusCode, data }</code>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Jobs Table -->
+    <div class="card" style="margin-top: 18px;" aria-label="Job progress">
+      <div class="section toolbar">
+        <div class="left"><strong>Jobs</strong>
+          <span id="job-stats" class="subtle">0 total • 0 in progress • 0 success • 0 error</span>
+        </div>
+        <div class="right subtle">Status colors: <span class="status" style="gap:6px; margin-left:6px"><span class="status-dot yellow"></span>In Progress</span> · <span class="status" style="gap:6px"><span class="status-dot green"></span>Success</span> · <span class="status" style="gap:6px"><span class="status-dot red"></span>Error</span></div>
+      </div>
+      <div class="section" style="padding-top: 0;">
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:38px">#</th>
+                <th>URL</th>
+                <th style="width:120px">HTTP</th>
+                <th style="width:160px">Result</th>
+                <th style="width:140px">Status</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for JSON detail -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div id="modal-title" style="font-weight:700;">JSON Result</div>
+        <div class="row">
+          <button id="copy-json-btn" class="btn thin">Copy JSON</button>
+          <button id="download-json-btn" class="btn thin">Download</button>
+          <button id="close-modal" class="btn thin" aria-label="Close">Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <pre id="modal-body"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- State ---
+    const state = {
+      fields: ["title", "desc", "sales_price"],
+      jobs: [], // { id, url, status: 'in_progress'|'success'|'error', code, data }
+      mock: true
+    };
+
+    // --- DOM ---
+    const fieldList = document.getElementById('field-list');
+    const fieldInput = document.getElementById('field-input');
+    const addFieldBtn = document.getElementById('add-field-btn');
+    const urlInput = document.getElementById('url-input');
+    const startBtn = document.getElementById('start-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const jobsTbody = document.getElementById('jobs-tbody');
+    const mockToggle = document.getElementById('mock-toggle');
+    const jobStats = document.getElementById('job-stats');
+
+    const modal = document.getElementById('modal');
+    const modalBody = document.getElementById('modal-body');
+    const modalTitle = document.getElementById('modal-title');
+    const closeModalBtn = document.getElementById('close-modal');
+    const copyJsonBtn = document.getElementById('copy-json-btn');
+    const downloadJsonBtn = document.getElementById('download-json-btn');
+
+    // --- Utils ---
+    function slugify(str) {
+      return str
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_]/g, '')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    }
+
+    function renderFields() {
+      fieldList.innerHTML = '';
+      state.fields.forEach((f, idx) => {
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.innerHTML = `<span>${f}</span>`;
+        const x = document.createElement('span');
+        x.className = 'x'; x.textContent = '×'; x.title = 'Remove';
+        x.addEventListener('click', () => { state.fields.splice(idx,1); renderFields(); });
+        pill.appendChild(x);
+        fieldList.appendChild(pill);
+      });
+    }
+
+    function updateStats() {
+      const total = state.jobs.length;
+      const inprog = state.jobs.filter(j => j.status === 'in_progress').length;
+      const success = state.jobs.filter(j => j.status === 'success').length;
+      const error = state.jobs.filter(j => j.status === 'error').length;
+      jobStats.textContent = `${total} total • ${inprog} in progress • ${success} success • ${error} error`;
+    }
+
+    function createRow(job) {
+      const tr = document.createElement('tr');
+      tr.dataset.id = job.id;
+      tr.innerHTML = `
+        <td>${job.id}</td>
+        <td><div style="max-width:580px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${job.url}">${job.url}</div></td>
+        <td class="http-code">—</td>
+        <td class="result-cell">
+          <a class="badge-link" href="#" data-action="view-json" aria-disabled="true">View</a>
+        </td>
+        <td class="status">
+          <span class="status-dot yellow" title="In progress"></span>
+          <span>In progress</span>
+        </td>
+      `;
+      jobsTbody.appendChild(tr);
+    }
+
+    function updateRow(job) {
+      const tr = jobsTbody.querySelector(`tr[data-id="${job.id}"]`);
+      if (!tr) return;
+      tr.querySelector('.http-code').textContent = job.code ?? '—';
+
+      const statusCell = tr.querySelector('.status');
+      const dot = statusCell.querySelector('.status-dot');
+      const label = statusCell.querySelector('span:last-child');
+
+      dot.classList.remove('yellow','green','red');
+      if (job.status === 'in_progress') {
+        dot.classList.add('yellow');
+        dot.title = 'In progress';
+        label.textContent = 'In progress';
+      } else if (job.status === 'success') {
+        dot.classList.add('green');
+        dot.title = 'Success';
+        label.textContent = 'Success';
+      } else {
+        dot.classList.add('red');
+        dot.title = 'Error';
+        label.textContent = 'Error';
+      }
+
+      // Result link
+      const resultCell = tr.querySelector('.result-cell .badge-link');
+      if (job.status === 'success' && job.data) {
+        resultCell.setAttribute('aria-disabled','false');
+        resultCell.dataset.id = job.id;
+      } else {
+        resultCell.setAttribute('aria-disabled','true');
+        delete resultCell.dataset.id;
+      }
+    }
+
+    function pretty(obj) { return JSON.stringify(obj, null, 2); }
+
+    function openModalForJob(job) {
+      modalTitle.textContent = `JSON Result — Job #${job.id}`;
+      modalBody.textContent = pretty(job.data);
+      modal.setAttribute('open','');
+      modal.dataset.openFor = String(job.id);
+    }
+
+    function closeModal() { modal.removeAttribute('open'); modalBody.textContent = ''; delete modal.dataset.openFor; }
+
+    function blobDownload(filename, text) {
+      const blob = new Blob([text], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 500);
+    }
+
+    // --- Mock + Real Job Runners ---
+    function mockJob(url, fields) {
+      // Random delay & outcome
+      const delay = 400 + Math.random()*1800;
+      const succeed = Math.random() < 0.8; // 80% success
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (succeed) {
+            const data = {
+              url,
+              scrapedAt: new Date().toISOString(),
+              data: Object.fromEntries(fields.map((f, i) => [f, `sample_${f}_${(Math.random()*1000|0)}`]))
+            };
+            resolve({ statusCode: 200, data });
+          } else {
+            resolve({ statusCode: [400,404,500][Math.floor(Math.random()*3)], data: null });
+          }
+        }, delay);
+      });
+    }
+
+    async function realJob(url, fields) {
+      // Placeholder: try GET (may hit CORS). In your app, call your Orchestrator API.
+      // Expected response shape: { statusCode: number, data: any }
+      try {
+        const res = await fetch(url, { method: 'GET' });
+        const statusCode = res.status;
+        let data = null;
+        try {
+          // Attempt to parse as text; place into a simple skeleton under the specified fields
+          const html = await res.text();
+          data = {
+            url,
+            scrapedAt: new Date().toISOString(),
+            data: Object.fromEntries(fields.map((f) => [f, `(extract ${f} from HTML here)`])),
+            preview: html.slice(0, 500)
+          };
+        } catch (e) {}
+        return { statusCode, data };
+      } catch (err) {
+        return { statusCode: 0, data: null };
+      }
+    }
+
+    async function runJob(job) {
+      const { url } = job;
+      const fields = state.fields;
+      const runner = state.mock ? mockJob : realJob;
+
+      try {
+        const { statusCode, data } = await runner(url, fields);
+        if (statusCode === 200 && data) {
+          job.status = 'success';
+          job.code = statusCode;
+          job.data = data;
+        } else {
+          job.status = 'error';
+          job.code = statusCode;
+          job.data = null;
+        }
+      } catch (e) {
+        job.status = 'error';
+        job.code = 0;
+        job.data = null;
+      }
+      updateRow(job); updateStats();
+    }
+
+    // --- Event wiring ---
+    function addFieldFromInput() {
+      const raw = fieldInput.value.trim();
+      if (!raw) return;
+      const val = slugify(raw);
+      if (!val) return;
+      if (!state.fields.includes(val)) state.fields.push(val);
+      fieldInput.value = '';
+      renderFields();
+    }
+
+    addFieldBtn.addEventListener('click', addFieldFromInput);
+    fieldInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addFieldFromInput(); }
+    });
+
+    mockToggle.addEventListener('change', () => { state.mock = mockToggle.checked; });
+
+    startBtn.addEventListener('click', () => {
+      const urls = urlInput.value
+        .split(/\n|\r/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      const uniq = Array.from(new Set(urls));
+      if (uniq.length === 0) {
+        alert('Please enter at least one URL.');
+        return;
+      }
+      // Initialize jobs
+      state.jobs = uniq.map((url, i) => ({ id: i+1, url, status: 'in_progress', code: null, data: null }));
+      jobsTbody.innerHTML = '';
+      state.jobs.forEach(createRow);
+      updateStats();
+
+      // Kick off all jobs (concurrently)
+      state.jobs.forEach(runJob);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      state.jobs = []; jobsTbody.innerHTML = ''; updateStats();
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const results = state.jobs
+        .filter(j => j.status === 'success' && j.data)
+        .map(j => j.data);
+      if (results.length === 0) { alert('No successful results to export yet.'); return; }
+      blobDownload('crawler_results.json', JSON.stringify(results, null, 2));
+    });
+
+    jobsTbody.addEventListener('click', (e) => {
+      const a = e.target.closest('a.badge-link');
+      if (!a) return;
+      e.preventDefault();
+      const id = Number(a.dataset.id);
+      const job = state.jobs.find(j => j.id === id);
+      if (job && job.data) openModalForJob(job);
+    });
+
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.hasAttribute('open')) closeModal(); });
+
+    copyJsonBtn.addEventListener('click', async () => {
+      const jobId = Number(modal.dataset.openFor);
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job || !job.data) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(job.data, null, 2));
+        copyJsonBtn.textContent = 'Copied!';
+        setTimeout(()=> copyJsonBtn.textContent = 'Copy JSON', 900);
+      } catch {}
+    });
+
+    downloadJsonBtn.addEventListener('click', () => {
+      const jobId = Number(modal.dataset.openFor);
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job || !job.data) return;
+      const fname = `job_${job.id}_result.json`;
+      blobDownload(fname, JSON.stringify(job.data, null, 2));
+    });
+
+    // Initial render
+    renderFields();
+
+    // Optional demo URLs
+    urlInput.value = [
+      'https://example.com/product/alpha',
+      'https://example.com/product/bravo',
+      'https://example.com/product/charlie'
+    ].join('\n');
+  </script>
+</body>
+</html>
