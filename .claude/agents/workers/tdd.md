@@ -16,9 +16,6 @@
 
 
 
-
-
-
 ## Testing Guidelines
 
 - Do your best to test the exposed API, its inputs and outputs, rather than implementation details.

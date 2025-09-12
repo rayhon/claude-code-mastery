@@ -6,7 +6,7 @@ Our tech stack is documented below. Follow it closely over your development task
 
 ### Frontend Tech Stack 
 
-- **UI framework**: Remix v2 (Vite) targeting Cloudflare Workers.
+- **UI framework**: NextJS 15 runs on Cloudflare Edge Infrastructure as Worker.
 - **Language**: Typescript for type safety
 - **Build Tool**: Vite
 - **Package Manager**: npm
